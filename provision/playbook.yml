@@ -5,90 +5,170 @@
 
   tasks:
 
-  - name: Add repositories
-    apt_repository: repo={{ item }}
-    with_items:
-      - "ppa:brightbox/ruby-ng"
-      - "ppa:ondrej/php"
+  - name: Update apt
+    apt:
+      update_cache: yes
+
+  # - name: Add repositories
+  #   apt_repository: repo={{ item }}
+  #   with_items:
+  #     - "ppa:ondrej/php"
+  #
+
+  # # PHP
+  - name: Install PHP packages
+    apt:
+      state: latest
+      pkg:
+        - php7.4
+        - libapache2-mod-php7.4
+        - php7.4-cli
+        - php7.4-dev
+        - php7.4-mbstring
+        - php7.4-mysql
+        - php7.4-gd
+        - php7.4-curl
+        - php7.4-zip
+        - php7.4-xml
+        - php7.4-fpm
+        - php-xdebug
+        - php-imagick
 
   - name: Install common packages
     apt:
+      state: latest
+      # update_cache: yes
       pkg:
         - git
         - build-essential
-        - ruby-dev
-        - libsqlite3-dev
-        - jq
-        - subversion
         - curl
         - gettext
-        - python-mysqldb
         - imagemagick
+        - jq
+        - libsqlite3-dev
         - net-tools
-        - ruby2.4
-        - ruby2.4-dev
+        - ruby-dev
         - software-properties-common
-        - python-software-properties
 
   # Apache2
-  - name: Ensure apache is installed
-    apt: pkg=apache2 state=latest
-  - name: Activate mod rewrite
-    apache2_module: state=present name=rewrite
-  - name: Activate mod ssl
-    apache2_module: state=present name=ssl
+  - name: Install apache2 server
+    apt:
+      pkg: apache2
+      state: latest
+  # Install apache modules
+  - name: Activate module rewrite (apache2)
+    apache2_module:
+      state: present
+      name: rewrite
+  - name: Activate module ssl (apache2)
+    apache2_module:
+      state: present
+      name: ssl
+  - name: Activate module php (apache2)
+    apache2_module:
+      state: present
+      name: ssl
+  # Flynt requirements
+  - name: Activate module expires (apache2)
+    apache2_module:
+      state: present
+      name: expires
+  - name: Activate module headers (apache2)
+    apache2_module:
+      state: present
+      name: headers
+  - name: Activate module mime (apache2)
+    apache2_module:
+      state: present
+      name: mime
+  - name: Activate module env (apache2)
+    apache2_module:
+      state: present
+      name: env
+  - name: Activate module filter (apache2)
+    apache2_module:
+      state: present
+      name: filter
+  - name: Activate module deflate (apache2)
+    apache2_module:
+      state: present
+      name: deflate
+  - name: Activate module alias (apache2)
+    apache2_module:
+      state: present
+      name: alias
+  - name: Activate module actions (apache2)
+    apache2_module:
+      state: present
+      name: actions
+  - name: Activate module auth_basic (apache2)
+    apache2_module:
+      state: present
+      name: auth_basic
+  - name: Activate module proxy (apache2)
+    apache2_module:
+      state: present
+      name: proxy
+  - name: Activate module proxy_fcgi (apache2)
+    apache2_module:
+      state: present
+      name: proxy_fcgi
+  - name: Activate module setenvif (apache2)
+    apache2_module:
+      state: present
+      name: setenvif
+  - name: Activate module php7.4-fpm (apache2)
+    apache2_module:
+      state: present
+      name: php7.4-fpm
+  - name: Deactivate module php7.4 (apache2)
+    apache2_module:
+      state: absent
+      name: php7.4
+  - name: Deactivate module mpm_prefork (apache2)
+    apache2_module:
+      state: absent
+      name: mpm_prefork
+  - name: Activate module mpm_event (apache2)
+    apache2_module:
+      state: present
+      name: mpm_event
+
+  # Start apache2 server
   - name: Make sure apache is running
-    action: service name=apache2 state=started enabled=true
-
-  # PIP
-  - name: Install PIP
-    apt: pkg=python-pip state=latest
-
-  # Install pyOpenSSL python library
-  - name: Install pyOpenSSL
-    shell: pip install pyOpenSSL
+    service:
+      name: apache2
+      state: started
+      enabled: true
+  - name: Restart PHP-FPM
+    service:
+      name: php7.4-fpm
+      state: restarted
 
   # MySQL
-  - name: Set MySQL root password before installing
-    debconf:
-      name: mysql-server
-      question: mysql-server/root_password
-      value: "{{mysql_root_pass | quote}}"
-      vtype: password
-  - name: Confirm MySQL root password before installing
-    debconf:
-      name: mysql-server
-      question: mysql-server/root_password_again
-      value: "{{mysql_root_pass | quote}}"
-      vtype: password
-  - name: Install MySQL
-    apt: pkg=mysql-server state=latest update_cache=yes
-  - name: Make sure MySQL is running
-    action: service name=mysql state=started enabled=true
+  # - name: Set MySQL root password before installing
+  #   debconf:
+  #     name: mysql-server
+  #     question: mysql-server/root_password
+  #     value: "{{mysql_root_pass | quote}}"
+  #     vtype: password
+  # - name: Confirm MySQL root password before installing
+  #   debconf:
+  #     name: mysql-server
+  #     question: mysql-server/root_password_again
+  #     value: "{{mysql_root_pass | quote}}"
+  #     vtype: password
+  # - name: Install MySQL
+  #   apt: pkg=mysql-server state=latest update_cache=yes
+  # - name: Make sure MySQL is running
+  #   action: service name=mysql state=started enabled=true
 
-  # PHP
-  - name: Install PHP packages
-    apt: name={{ item }} state=latest update_cache=yes
-    with_items:
-      - php7.4
-      - libapache2-mod-php7.4
-      - php7.4-cli
-      - php7.4-dev
-      - php7.4-mbstring
-      - php7.4-mysql
-      - php7.4-gd
-      - php7.4-curl
-      - php7.4-zip
-      - php7.4-xml
-      - php-xdebug
-      - php-imagick
-    notify: restart-apache
 
   # Node.js
-  - name: Install Node.js PPM
-    shell: curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-  - name: Install Node.js
-    apt: name=nodejs state=latest
+  # - name: Install Node.js PPM
+  #   shell: curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+  # - name: Install Node.js
+  #   apt: name=nodejs state=latest
 
   handlers:
     - name: restart-apache
