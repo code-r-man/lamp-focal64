@@ -55,3 +55,26 @@ Then run provision.
 ```
 $ vagrant up
 ```
+
+Notes:
+* Enable http2
+  * install apache2 latest:
+    ```
+    add-apt-repository -y ppa:ondrej/apache2
+    apt update
+    apt –only-upgrade install apache2 -y
+    a2enmod http2
+    service apache2 restart
+    ```
+  * enable it in the `/etc/apache2/apache2.conf` file:
+    ```
+    Protocols h2 http/1.1
+    ```
+  * edit `VirtualHost` file:
+    ```
+    Protocols http/1.1
+    <VirtualHost ...>
+        ServerName test.example.org
+        Protocols h2 http/1.1
+    </VirtualHost>
+    ```

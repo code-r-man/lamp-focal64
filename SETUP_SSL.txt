@@ -1,0 +1,58 @@
+Manual procedure to set up SSL on Apache 2
+******************************************
+
+1. Generate public key pair for self CA:
+   `$ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 -out cakey.pem`
+
+
+2. Self-sign the certificate (100 years validity):
+   `$ openssl req -new -x509 -key cakey.pem -out cacert.pem -days 36500`
+
+3. Setup directories on the server:
+   `$ mkdir demoCA && mkdir demoCA/certs && mkdir demoCA/crl && mkdir demoCA/newcerts && mkdir demoCA/private && touch demoCA/index.txt && echo 02 > demoCA/serial`
+
+4. Move the certificate files:
+   `$  mv cacert.pem demoCA/ && mv cakey.pem demoCA/private/`
+
+5. Edit the SSL config file:
+   `$ sudo vim /usr/lib/ssl/openssl.cnf`
+
+5.1 In the '#For the cA policy' section change the 'countryName'/'stateOrProvinceName'/'organizationName' values to 'optional'
+
+6. Generate private key pair for the server:
+   `$ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 -out private-key-{domain_name}.pem`
+
+7. Generate certificate signing request:
+   `$ openssl req -new -key private-key-{domain_name}.pem -out cert-req-{domain_name}.csr`
+
+8. Sign the certificate
+   `$ openssl ca -in cert-req-{domain_name}.csr -out cert-{domain_name}.pem`
+
+9. Rename the self CA certificate file name:
+   `$ mv demoCA/cacert.pem demoCA/cert-self-ca.crt`
+
+10. Check the certificate
+    `$ openssl verify -CAfile demoCA/cert-self-ca.crt cert-{domain_name}.pem`
+
+There are now two certificates:
+1) Self CA: demoCA/cert-self-ca.crt
+2) Server: cert-{domain_name}.pem
+
+11. Move the certificates so that Apache can read them:
+   `$ sudo cp cert-{domain_name}.pem /etc/ssl/certs/ && cp `demoCA/cert-self-ca.crt /etc/ssl/certs/ && cp private-key-{domain_name}.pem /etc/ssl/private/`
+
+12. Configure apache to use HTTPS:
+  Write the 'default-ssl.config' file:
+
+<VirtualHost *:443>
+    ServerName www.vccw.test
+    SSLEngine on
+    SSLCertificateFile "/etc/ssl/certs/cert-www.vccw.test.pem"
+    SSLCertificateKeyFile "/etc/ssl/private/private-key-www.vccw.test.pem"
+</VirtualHost>
+    
+13. Enable SSL module in Apache:
+   `$ sudo a2enmod ssl && a2ensite default-ssl`
+
+14. Reload the config (no need to restart the server):
+   `sudo systemctl reload apache2`
