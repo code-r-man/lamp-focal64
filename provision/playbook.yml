@@ -13,9 +13,13 @@
   #   apt_repository: repo={{ item }}
   #   with_items:
   #     - "ppa:ondrej/php"
-  #
 
-  # # PHP
+  - name: Install pip3
+    apt:
+      name: python3-pip
+      state: present
+
+  # PHP
   - name: Install PHP packages
     apt:
       state: latest
