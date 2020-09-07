@@ -49,6 +49,7 @@
         - net-tools
         - ruby-dev
         - software-properties-common
+        - subversion
 
   # Apache2
   - name: Install apache2 server
@@ -117,6 +118,8 @@
     apache2_module:
       state: present
       name: setenvif
+  # Flynt requirements ./end
+  # HTTP2 requirements
   - name: Activate module php7.4-fpm (apache2)
     apache2_module:
       state: present
@@ -126,13 +129,11 @@
       state: absent
       name: php7.4
   - name: Deactivate module mpm_prefork (apache2)
-    apache2_module:
-      state: absent
-      name: mpm_prefork
+    command: a2dismod mpm_prefork
+    become: yes
   - name: Activate module mpm_event (apache2)
-    apache2_module:
-      state: present
-      name: mpm_event
+    command: a2enmod mpm_event
+    become: yes
 
   # Start apache2 server
   - name: Make sure apache is running
@@ -140,28 +141,49 @@
       name: apache2
       state: started
       enabled: true
+
+  - name: Reload apache configuration
+    command: systemctl restart apache2
+    become: yes
+  # - name: Reload PHP-FPM configuration
+  #   command: service php7.4-fpm restart
+  #   become: yes
   - name: Restart PHP-FPM
     service:
       name: php7.4-fpm
       state: restarted
 
+  # HTTP2
+  - name: Add HTTP2 to apache config file (global)
+    lineinfile:
+      path: /etc/apache2/apache2.conf
+      line: Protocols h2 h2c http/1.1
+  - name: Enable HTTP2
+    command: a2enmod http2
+    become: yes
+
+  - name: Restart apache
+    service:
+      name: apache2
+      state: restarted
+
   # MySQL
-  # - name: Set MySQL root password before installing
-  #   debconf:
-  #     name: mysql-server
-  #     question: mysql-server/root_password
-  #     value: "{{mysql_root_pass | quote}}"
-  #     vtype: password
-  # - name: Confirm MySQL root password before installing
-  #   debconf:
-  #     name: mysql-server
-  #     question: mysql-server/root_password_again
-  #     value: "{{mysql_root_pass | quote}}"
-  #     vtype: password
-  # - name: Install MySQL
-  #   apt: pkg=mysql-server state=latest update_cache=yes
-  # - name: Make sure MySQL is running
-  #   action: service name=mysql state=started enabled=true
+  - name: Set MySQL root password before installing
+    debconf:
+      name: mysql-server
+      question: mysql-server/root_password
+      value: "{{mysql_root_pass | quote}}"
+      vtype: password
+  - name: Confirm MySQL root password before installing
+    debconf:
+      name: mysql-server
+      question: mysql-server/root_password_again
+      value: "{{mysql_root_pass | quote}}"
+      vtype: password
+  - name: Install MySQL
+    apt: pkg=mysql-server state=latest update_cache=yes
+  - name: Make sure MySQL is running
+    action: service name=mysql state=started enabled=true
 
 
   # Node.js
