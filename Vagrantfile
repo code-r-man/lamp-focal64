@@ -7,13 +7,10 @@ Vagrant.configure("2") do |config|
   config.vbguest.auto_update = true
   config.vm.box_check_update = true
 
-<<<<<<< HEAD
-=======
   config.vm.provider :virtualbox do |vb|
       vb.name = "lamp-focal64"
   end
 
->>>>>>> 14444ca... Update vagrant file code. Remove broken packages.
   config.vm.network :private_network, ip:  "192.168.33.10"
 
   config.vm.provider :virtualbox do |vb|
