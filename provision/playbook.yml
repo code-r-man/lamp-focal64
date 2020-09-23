@@ -5,53 +5,30 @@
 
   tasks:
 
-  - name: Update apt
-    apt:
-      update_cache: yes
-
   # - name: Add repositories
   #   apt_repository: repo={{ item }}
   #   with_items:
+  #     - "ppa:brightbox/ruby-ng"
   #     - "ppa:ondrej/php"
-
-  - name: Install pip3
-    apt:
-      name: python3-pip
-      state: present
-
-  # PHP
-  - name: Install PHP packages
-    apt:
-      state: latest
-      pkg:
-        - php7.4
-        - libapache2-mod-php7.4
-        - php7.4-cli
-        - php7.4-dev
-        - php7.4-mbstring
-        - php7.4-mysql
-        - php7.4-gd
-        - php7.4-curl
-        - php7.4-zip
-        - php7.4-xml
-        - php7.4-fpm
-        - php-xdebug
-        - php-imagick
 
   - name: Install common packages
     apt:
       state: latest
-      # update_cache: yes
+      update_cache: yes
       pkg:
-        - git
+        # - python-mysqldb
+        # - python-software-properties
+        # - ruby2.4
+        # - ruby2.4-dev
         - build-essential
         - curl
         - gettext
+        - git
         - imagemagick
         - jq
         - libsqlite3-dev
         - net-tools
-        - ruby-dev
+        - ruby-full
         - software-properties-common
         - subversion
 
@@ -157,19 +134,15 @@
       name: php7.4-fpm
       state: restarted
 
-  # HTTP2
-  - name: Add HTTP2 to apache config file (global)
-    lineinfile:
-      path: /etc/apache2/apache2.conf
-      line: Protocols h2 h2c http/1.1
-  - name: Enable HTTP2
-    command: a2enmod http2
-    become: yes
+  # PIP
+  - name: Install PIP
+    apt:
+      pkg: python3-pip
+      state: latest
 
-  - name: Restart apache
-    service:
-      name: apache2
-      state: restarted
+  # Install pyOpenSSL python library
+  - name: Install pyOpenSSL
+    shell: pip3 install pyOpenSSL
 
   # MySQL
   - name: Set MySQL root password before installing
@@ -189,6 +162,25 @@
   - name: Make sure MySQL is running
     action: service name=mysql state=started enabled=true
 
+  # PHP
+  - name: Install PHP packages
+    apt:
+      pkg:
+        - php7.4
+        - libapache2-mod-php7.4
+        - php7.4-cli
+        - php7.4-dev
+        - php7.4-mbstring
+        - php7.4-mysql
+        - php7.4-gd
+        - php7.4-curl
+        - php7.4-zip
+        - php7.4-xml
+        - php-xdebug
+        - php-imagick
+      state: latest
+      update_cache: yes
+    notify: restart-apache
 
   # Node.js
   # - name: Install Node.js PPM
