@@ -6,6 +6,8 @@ Vagrant.configure("2") do |config|
   config.ssh.insert_key = false
   config.vbguest.auto_update = true
   config.vm.box_check_update = true
+  config.vm.box_version = "0.0.1"
+
 
   config.vm.provider :virtualbox do |vb|
       vb.name = "lamp-focal64"

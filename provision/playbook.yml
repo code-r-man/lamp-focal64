@@ -31,6 +31,7 @@
         - ruby-full
         - software-properties-common
         - subversion
+        - php7.4-fpm
 
   # Apache2
   - name: Install apache2 server
@@ -43,10 +44,6 @@
       state: present
       name: rewrite
   - name: Activate module ssl (apache2)
-    apache2_module:
-      state: present
-      name: ssl
-  - name: Activate module php (apache2)
     apache2_module:
       state: present
       name: ssl
@@ -100,11 +97,8 @@
       state: present
       name: setenvif
   # Flynt requirements ./end
+
   # HTTP2 requirements
-  - name: Activate module php7.4-fpm (apache2)
-    apache2_module:
-      state: present
-      name: php7.4-fpm
   - name: Deactivate module php7.4 (apache2)
     apache2_module:
       state: absent
@@ -114,6 +108,9 @@
     become: yes
   - name: Activate module mpm_event (apache2)
     command: a2enmod mpm_event
+    become: yes
+  - name: Activate module php7.4-fpm (apache2)
+    shell: a2enconf php7.4-fpm
     become: yes
 
   # Start apache2 server
@@ -126,13 +123,10 @@
   - name: Reload apache configuration
     command: systemctl restart apache2
     become: yes
-  # - name: Reload PHP-FPM configuration
-  #   command: service php7.4-fpm restart
-  #   become: yes
-  - name: Restart PHP-FPM
-    service:
-      name: php7.4-fpm
-      state: restarted
+  # - name: Restart PHP-FPM
+  #   service:
+  #     name: php7.4-fpm
+  #     state: restarted
 
   # PIP
   - name: Install PIP
