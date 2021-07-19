@@ -1,7 +1,5 @@
 # Ubuntu/Xenial64 based LAMP serrver
 
-[![Build Status](https://travis-ci.org/vccw-team/vccw-xenial64.svg?branch=master)](https://travis-ci.org/vccw-team/vccw-xenial64)
-
 ## What's installed
 
 * Apache 2
