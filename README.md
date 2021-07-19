@@ -6,9 +6,8 @@
 
 * Apache
 * MySQL
-* PHP 7
+* PHP 7.4
 * Ruby 2.3
-* Node.js 6.5
 
 ## How to create a box
 
@@ -47,7 +46,7 @@ $ vagrant box add vccw-xenial64 package.box --force
 Edit the `site.yml` in the VCCW v3 like following.
 
 ```
-wp_box: vccw-xenial64
+wp_box: lamp-focal64
 ```
 
 Then run provision.
@@ -56,7 +55,7 @@ Then run provision.
 $ vagrant up
 ```
 
-Notes:
+## Notes:
 * Enable http2
   * install apache2 latest:
     ```
