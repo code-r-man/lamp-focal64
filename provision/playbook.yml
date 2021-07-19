@@ -139,6 +139,12 @@
       - unzip
       update_cache: yes
 
+  # Add homepage
+  - name: Add homepage
+    template:
+      src: templates/index.php
+      dest: "{{ settings.document_root }}"
+
   # Mailcatcher
   - name: Install MailCatcher Dependencies
     apt:

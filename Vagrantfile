@@ -33,6 +33,7 @@ Vagrant.configure("2") do |config|
   config.vbguest.auto_update = true
   config.vm.box_check_update = true
   config.vm.network :private_network, ip: _conf['ip']
+  config.vm.hostname = _conf['hostname']
 
   if Vagrant.has_plugin?('vagrant-hostsupdater')
     config.hostsupdater.aliases = _conf['hostname_aliases']
